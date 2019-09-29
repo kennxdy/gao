@@ -1,7 +1,8 @@
 import sys
 import time
 
-from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QAction, qApp, QLineEdit, QMessageBox
+from PyQt5.QtWidgets import (QMainWindow, QApplication, QWidget, QPushButton,
+                            QAction, qApp, QLineEdit, QMessageBox)
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
 import youtube_dl
@@ -25,7 +26,8 @@ class App(QMainWindow):
         def my_hook(d):
             if d['status'] == 'finished':
                 time.sleep(0.8)
-                QMessageBox.question(self, 'Download', "Your download finished!", QMessageBox.Ok, QMessageBox.Ok)
+                QMessageBox.question(self, 'Download', "Your download finished!",
+                                    QMessageBox.Ok, QMessageBox.Ok)
 
 
         self.title = 'GAO'
