@@ -4,7 +4,7 @@ GAO (Get Audio Only) is a software for extracting audio from Youtube videos.
 
 ## Screenshot
 
-<img src="image/gao.png" alt="gao">
+<img src="screenshot/gao.png" alt="gao">
 
 ## Dependencies
 
