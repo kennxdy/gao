@@ -1,3 +1,5 @@
+import os
+import shutil
 import sys
 import time
 
@@ -34,7 +36,7 @@ class App(QMainWindow):
         self.left = 10
         self.top = 10
         self.width = 400
-        self.height = 235
+        self.height = 220
         self.ydl_opts = {
             'format': 'bestaudio/best',
             'postprocessors': [{
@@ -76,7 +78,7 @@ class App(QMainWindow):
         # Create the textbox
         self.textbox = QLineEdit(self)
         self.textbox.move(20, 80)
-        self.textbox.resize(360, 40)
+        self.textbox.resize(360, 30)
 
         # Create a button in the window
         self.button = QPushButton('Download', self)
@@ -92,6 +94,15 @@ class App(QMainWindow):
         textboxValue = self.textbox.text()
         with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
             ydl.download([textboxValue])
+
+        current_dir = os.getcwd()
+        dir_name = 'audios'
+
+        for file in os.listdir(path='.'):
+            if file.endswith('.mp3'):
+                audio_files = os.path.join(current_dir, file)
+                audio_dir = os.path.join(current_dir, dir_name)
+                shutil.move(audio_files, audio_dir)
 
 
     def about(self, event):
@@ -110,7 +121,16 @@ class App(QMainWindow):
             pass
 
 
+def setup():
+    if not os.path.exists('audios'):
+        try:
+            os.mkdir('audios')
+        except e:
+            print(e)
+
+
 if __name__ == '__main__':
+    setup()
     app = QApplication(sys.argv)
     ex = App()
     sys.exit(app.exec_())
