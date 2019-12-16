@@ -1,2 +1,2 @@
-PyQt5==5.13.0
-youtube-dl==2019.8.13
+PyQt5==5.13.2
+youtube-dl==2019.11.28
