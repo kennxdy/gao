@@ -1,18 +1,51 @@
 import os
 import shutil
 import sys
-import time
 
-from PyQt5.QtWidgets import (QMainWindow, QApplication, QWidget, QPushButton,
+from PyQt5.QtCore import QObject, QRunnable, QThreadPool, pyqtSlot, pyqtSignal
+from PyQt5.QtWidgets import (QMainWindow, QApplication, QLabel, QPushButton,
                             QAction, qApp, QLineEdit, QMessageBox)
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import pyqtSlot
 import youtube_dl
 
 
-class App(QMainWindow):
-    def __init__(self):
-        super().__init__()
+class WorkerSignals(QObject):
+    finished = pyqtSignal()
+
+
+class Worker(QRunnable):
+    def __init__(self, text, opts, label):
+        super(QRunnable, self).__init__()
+        self._text = text
+        self._opts = opts
+        self._label = label
+        self.signals = WorkerSignals()
+
+
+    def run(self):
+        try:
+            with youtube_dl.YoutubeDL(self._opts) as ydl:
+                ydl.download([self._text])
+
+            current_dir = os.getcwd()
+            dir_name = 'audios'
+
+            for file in os.listdir(path='.'):
+                if file.endswith('.mp3'):
+                    audio_files = os.path.join(current_dir, file)
+                    audio_dir = os.path.join(current_dir, dir_name)
+                    shutil.move(audio_files, audio_dir)
+        except:
+            print('An error has occurred')
+        finally:
+            self.signals.finished.emit()
+            self._label.setText('')
+
+
+
+class App(QMainWindow,):
+    def __init__(self, parent=None):
+        super(App, self).__init__()
 
         class MyLogger(object):
             def debug(self, msg):
@@ -23,13 +56,6 @@ class App(QMainWindow):
 
             def error(self, msg):
                 pass
-
-
-        def my_hook(d):
-            if d['status'] == 'finished':
-                time.sleep(0.8)
-                QMessageBox.question(self, 'Download', "Your download finished!",
-                                    QMessageBox.Ok, QMessageBox.Ok)
 
 
         self.title = 'GAO'
@@ -45,77 +71,85 @@ class App(QMainWindow):
                 'preferredquality': '192',
             }],
             'logger': MyLogger(),
-            'progress_hooks': [my_hook],
         }
 
         self.initUI()
 
 
     def initUI(self):
-        exitAct = QAction('&Exit', self)
+        exitAct = QAction('Exit', self)
         exitAct.setShortcut('Ctrl+Q')
-        exitAct.setStatusTip('Exit application')
         exitAct.triggered.connect(qApp.quit)
 
-        aboutAct = QAction('&About', self)
-        aboutAct.setStatusTip('About')
+        aboutAct = QAction('About', self)
         aboutAct.triggered.connect(self.about)
 
         self.statusBar()
 
         menubar = self.menuBar()
-        fileMenu = menubar.addMenu('&File')
+        fileMenu = menubar.addMenu('File')
         fileMenu.addAction(exitAct)
 
-        fileMenu = menubar.addMenu('&Help')
+        fileMenu = menubar.addMenu('Help')
         fileMenu.addAction(aboutAct)
+
+        self.input_label = QLabel('VIDEO URL', self)
+        self.input_label.move(163, 40)
+
+        self.textbox = QLineEdit(self)
+        self.textbox.move(50, 85)
+        self.textbox.resize(300, 30)
+
+        self.button = QPushButton('Download', self)
+        self.button.move(150, 125)
+        self.button.clicked.connect(self.on_click)
+
+        self.info_label = QLabel('', self)
+        self.info_label.move(10, 190)
 
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         self.setFixedSize(self.size())
-        self.setWindowIcon(QIcon('icons/icon.png'))
+        self.setWindowIcon(QIcon('icons/icon.svg'))
 
-        # Create the textbox
-        self.textbox = QLineEdit(self)
-        self.textbox.move(20, 80)
-        self.textbox.resize(360, 30)
-
-        # Create a button in the window
-        self.button = QPushButton('Download', self)
-        self.button.move(150, 130)
-
-        # Connect button to function on_click
-        self.button.clicked.connect(self.on_click)
         self.show()
+
+        self.threadpool = QThreadPool()
+
+
+    def thread_complete(self):
+        QMessageBox.question(self, 'Download',
+                            'Your download finished!',
+                            QMessageBox.Ok, QMessageBox.Ok)
 
 
     @pyqtSlot()
     def on_click(self):
-        textboxValue = self.textbox.text()
-        with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
-            ydl.download([textboxValue])
+        text = self.textbox.text()
 
-        current_dir = os.getcwd()
-        dir_name = 'audios'
+        if text == '':
+            pass
+        else:
+            opts = self.ydl_opts
+            self.info_label.setText('Downloading...')
 
-        for file in os.listdir(path='.'):
-            if file.endswith('.mp3'):
-                audio_files = os.path.join(current_dir, file)
-                audio_dir = os.path.join(current_dir, dir_name)
-                shutil.move(audio_files, audio_dir)
+            worker = Worker(text, opts, self.info_label)
+
+            worker.signals.finished.connect(self.thread_complete)
+            self.threadpool.start(worker)
 
 
     def about(self, event):
-        reply = QMessageBox.question(self, 'Message',
-                "                Name: GAO\n\
-                Description: Extract audio from Youtube videos.\n\
-                Version: 0.1.0\n\
+        reply = QMessageBox.question(self, 'About',
+                '                Name: GAO\n\
+                Description: Extract audio from Youtube videos\n\
+                Version: 0.1.1\n\
                 Author: Kennedy Allyson\n\
                 Email: kennedy01101@gmail.com\n\
-                Github: kennedyallyson",\
-                QMessageBox.Yes, QMessageBox.Yes)
+                Github: kennedyallyson',\
+                QMessageBox.Ok, QMessageBox.Ok)
 
-        if reply == QMessageBox.Yes:
+        if reply == QMessageBox.Ok:
             pass
         else:
             pass
@@ -125,8 +159,8 @@ def setup():
     if not os.path.exists('audios'):
         try:
             os.mkdir('audios')
-        except e:
-            print(e)
+        except:
+            pass
 
 
 if __name__ == '__main__':
