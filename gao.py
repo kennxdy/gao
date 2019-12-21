@@ -94,7 +94,7 @@ class App(QMainWindow,):
         fileMenu.addAction(aboutAct)
 
         self.input_label = QLabel('VIDEO URL', self)
-        self.input_label.move(163, 40)
+        self.input_label.move(170, 40)
 
         self.textbox = QLineEdit(self)
         self.textbox.move(50, 85)
