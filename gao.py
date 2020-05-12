@@ -62,7 +62,7 @@ class App(QMainWindow,):
         self.left = 10
         self.top = 10
         self.width = 400
-        self.height = 220
+        self.height = 200
         self.ydl_opts = {
             'format': 'bestaudio/best',
             'postprocessors': [{
@@ -94,14 +94,14 @@ class App(QMainWindow,):
         fileMenu.addAction(aboutAct)
 
         self.input_label = QLabel('VIDEO URL', self)
-        self.input_label.move(170, 40)
+        self.input_label.move(165, 35)
 
         self.textbox = QLineEdit(self)
-        self.textbox.move(50, 85)
+        self.textbox.move(50, 75)
         self.textbox.resize(300, 30)
 
         self.button = QPushButton('Download', self)
-        self.button.move(150, 125)
+        self.button.move(150, 115)
         self.button.clicked.connect(self.on_click)
 
         self.info_label = QLabel('', self)
