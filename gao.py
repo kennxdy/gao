@@ -105,7 +105,7 @@ class App(QMainWindow,):
         self.button.clicked.connect(self.on_click)
 
         self.info_label = QLabel('', self)
-        self.info_label.move(10, 190)
+        self.info_label.move(11, 170)
 
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
