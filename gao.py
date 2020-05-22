@@ -99,6 +99,7 @@ class App(QMainWindow,):
         self.textbox = QLineEdit(self)
         self.textbox.move(50, 75)
         self.textbox.resize(300, 30)
+        self.textbox.setPlaceholderText("Enter url...")
 
         self.button = QPushButton('Download', self)
         self.button.move(150, 115)
